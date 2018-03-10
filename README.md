@@ -12,20 +12,12 @@ SBT 1.x
 
 ## Installation ## 
 
-Currently sbt-thanks is only available from source and must be published locally 
-
-```sbtshell
-$ git clone git@github.com:hywelandrews/sbt-thanks.git
-$ cd sbt-thanks
-$ sbt publishLocal
-```
-
-Once published add the following line to either of these files:
+Add the following line to either of these files:
 - The project-specific file at `project/sbt-thanks.sbt`
 - Your global file at `~/.sbt/1.0/plugins/sbt-thanks.sbt`
 
 ```sbtshell
-addSbtPlugin("com.owlandrews" % "sbt-thanks" % "0.1.0")
+addSbtPlugin("com.owlandrews" % "sbt-thanks" % "0.2.0")
 ```
 
 Github API Credentials can be stored in a separate sbt file `thanks.sbt` in your global sbt 1.x settings folder

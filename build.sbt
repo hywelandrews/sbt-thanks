@@ -46,8 +46,8 @@ scalafmtSettings
 lazy val commonSettings =
   Seq(
     name := "sbt-thanks",
-    version := "0.1.0",
-    isSnapshot := true,
+    version := "0.2.0",
+    isSnapshot := false,
     scalaVersion := "2.12.4",
     organization := "com.owlandrews",
     organizationName := "Hywel Andrews",
