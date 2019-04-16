@@ -37,5 +37,5 @@ class MavenRepositories(resolvers: Seq[Resolver]) {
   }.flatten
 
   def public: MavenRepository =
-    all.find(_.name == "public").getOrElse(throw new IllegalStateException("No public maven repository defined"))
+    all.find(_.name == "public").getOrElse(Resolver.sonatypeRepo("public"))
 }
