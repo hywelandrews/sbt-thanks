@@ -17,7 +17,7 @@ Add the following line to either of these files:
 - Your global file at `~/.sbt/1.0/plugins/sbt-thanks.sbt`
 
 ```sbtshell
-addSbtPlugin("com.owlandrews" % "sbt-thanks" % "0.2.0")
+addSbtPlugin("com.owlandrews" % "sbt-thanks" % "0.3.0")
 ```
 
 Github API Credentials can be stored in a separate sbt file `thanks.sbt` in your global sbt 1.x settings folder

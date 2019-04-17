@@ -24,9 +24,9 @@ lazy val `sbt-thanks` =
 lazy val library =
   new {
     object Version {
-      val scalaCheck    = "1.13.5"
-      val scalaTest     = "3.0.4"
-      val http4sVersion = "0.18.0"
+      val scalaCheck    = "1.14.0"
+      val scalaTest     = "3.0.7"
+      val http4sVersion = "0.19.0"
     }
     val http4sDsl    = "org.http4s"     %% "http4s-dsl"    % Version.http4sVersion
     val http4sClient = "org.http4s"     %% "http4s-blaze-client" % Version.http4sVersion
@@ -46,9 +46,9 @@ scalafmtSettings
 lazy val commonSettings =
   Seq(
     name := "sbt-thanks",
-    version := "0.2.0",
+    version := "0.3.0",
     isSnapshot := false,
-    scalaVersion := "2.12.4",
+    scalaVersion := "2.12.8",
     organization := "com.owlandrews",
     organizationName := "Hywel Andrews",
     sbtPlugin := true,
