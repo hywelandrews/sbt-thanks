@@ -57,7 +57,8 @@ class GitHubClient[F[_]: Effect](httpClient: Client[F])(username: String, token:
     val request = Request[F](method = Method.GET, uri = path, headers = basicAuthorizationHeader)
     httpClient.fetch(request) { f =>
       Effect[F].pure(f.headers.exists { header =>
-        header.name == CaseInsensitiveString("X-OAuth-Scopes") && header.value.contains("public_repo")
+        header.name == CaseInsensitiveString("X-OAuth-Scopes") &&
+        (header.value.contains("public_repo") || header.value.contains("repo"))
       })
     }
   }

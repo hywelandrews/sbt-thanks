@@ -21,7 +21,7 @@
 
 package com.owlandrews.sbt.thanks
 
-import cats.effect.IO
+import cats.effect.{ ContextShift, IO }
 import sbt.Keys.{ libraryDependencies, scalaBinaryVersion, _ }
 import sbt.{ Def, _ }
 
@@ -73,45 +73,52 @@ object Thanks {
             gitHubPublicApiUser: String,
             gitHubPublicApiKey: String): Unit = {
 
+    import scala.concurrent.ExecutionContext.Implicits.global
     import org.http4s.client.blaze._
 
-    val httpClient     = Http1Client[IO]().unsafeRunSync
-    val downloader     = new Downloader[IO](httpClient, Seq.empty, logger)
-    val mavenResolvers = new MavenRepositories(resolvers)
-    val githubClient   = new GitHubClient[IO](httpClient)(gitHubPublicApiUser, gitHubPublicApiKey)
+    implicit val cs: ContextShift[IO] = IO.contextShift(global)
 
-    val thanksProgram = dependencies.toVector.map { dependency =>
-      val getPom =
-        new MavenPomLoader[IO](mavenResolvers.public,
-                               CrossVersion(dependency.crossVersion, scalaVersion, scalaBinaryVersion),
-                               downloader)
+    BlazeClientBuilder[IO](global).resource
+      .use { httpClient =>
+        val downloader     = new Downloader[IO](httpClient, Seq.empty, logger)
+        val mavenResolvers = new MavenRepositories(resolvers)
+        val githubClient   = new GitHubClient[IO](httpClient)(gitHubPublicApiUser, gitHubPublicApiKey)
 
-      getPom
-        .getScm(dependency)
-        .attempt
-        .flatMap(
-          getPomFromAllResolvers(_)(dependency, mavenResolvers.all, downloader, scalaVersion, scalaBinaryVersion)
-        )
-        .flatMap(processGitHubStar(_)(githubClient))
-        .map(reportGitHubStarProcessing(_)(dependency))
-        .recover {
-          case NonFatal(_) => logger.warn(s"🛑  Unable to thank ${dependency.name}")
+        val thanksProgram = dependencies.toVector.map { dependency =>
+          val getPom =
+            new MavenPomLoader[IO](mavenResolvers.public,
+                                   CrossVersion(dependency.crossVersion, scalaVersion, scalaBinaryVersion),
+                                   downloader)
+
+          getPom
+            .getScm(dependency)
+            .attempt
+            .flatMap(
+              getPomFromAllResolvers(_)(dependency, mavenResolvers.all, downloader, scalaVersion, scalaBinaryVersion)
+            )
+            .flatMap(processGitHubStar(_)(githubClient))
+            .map(reportGitHubStarProcessing(_)(dependency))
+            .recover {
+              case NonFatal(_) => logger.warn(s"🛑  Unable to thank ${dependency.name}")
+            }
         }
-    }
 
-    val program = for {
-      hasPublicRepoSupport <- githubClient.supportsPublicRepo
-      noPublicRepoSupport = IO(
-        logger.warn(
-          """GitHub API Key does not support public_repo's:
-            |This can be updated in Settings -> Developer settings -> Personal access tokens -> repo -> public_repo
-            |""".stripMargin
-        )
-      )
-      result <- if (hasPublicRepoSupport) thanksProgram.sequence[IO, Unit] else noPublicRepoSupport
-    } yield result
+        val program = for {
+          hasPublicRepoSupport <- githubClient.supportsPublicRepo
+          noPublicRepoSupport = IO(
+            logger.warn(
+              """GitHub API Key does not support public_repo's:
+              |This can be updated in Settings -> Developer settings -> Personal access tokens -> repo -> public_repo
+              |""".stripMargin
+            )
+          )
+          result <- if (hasPublicRepoSupport) thanksProgram.sequence[IO, Unit] else noPublicRepoSupport
+        } yield result
 
-    program.unsafeRunSync()
+        program
+      }
+      .unsafeRunSync()
+
   }
 
   private def reportGitHubStarProcessing(scm: Scm)(module: ModuleID): Unit = scm match {
